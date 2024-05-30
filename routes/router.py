@@ -1,70 +1,40 @@
-from flask import Blueprint, jsonify, abort, request, render_template, redirect 
-from controls.personaDaoControl import PersonaDaoControl
-from flask_cors import CORS
+import json
+import os
+from flask import Blueprint, Flask, render_template, request, redirect, url_for
+from controls.registro_expresion import registrar_expresion
+
 router = Blueprint('router', __name__)
 
+json_file_path = os.path.join('data', 'expresiones.json')
 
-#GET es para presentar datos
-#POST guardar datos, modificar datos y el inicio de sesion
-#
+def cargar_expresiones():
+    if os.path.exists(json_file_path):
+        with open(json_file_path, 'r') as file:
+            return json.load(file)
+    return []
+
+def guardar_expresiones(expresiones):
+    with open(json_file_path, 'w') as file:
+        json.dump(expresiones, file, indent=4)
+
+expresiones_registradas = cargar_expresiones()
+
 @router.route('/')
-def home():
-    return render_template("template.html")
-    
-#lista personas
-@router.route('/personas')
-def lista_personas():
-    pd = PersonaDaoControl()
-    return render_template("nene/lista.html", lista=pd.to_dict())
+def index():
+    return render_template('index.html')
 
-#Lista personas
-@router.route('/personas/ver')
-def ver_guardar():
-    return render_template("nene/guardar.html")\
+@router.route('/registrar', methods=['POST'])
+def registrar():
+    expresion = request.form['expresion']
+    expresion_registrada = registrar_expresion(expresion)
+    if expresion_registrada:
+        expresiones_registradas.append(expresion_registrada)
+        guardar_expresiones(expresiones_registradas)
+        mensaje = f"Expresión '{expresion}' registrada correctamente."
+    else:
+        mensaje = f"La expresión '{expresion}' no es correcta"
+    return render_template('mensaje.html', mensaje=mensaje)
 
-#Lista personas
-@router.route('/personas/editar/<pos>')
-def ver_editar(pos):
-    pd = PersonaDaoControl()
-    nene = pd._list().get(int(pos) -1)
-    print(nene)
-    return render_template("nene/editar.html", data = nene )
-
-#guardar personas
-@router.route('/personas/guardar', methods=["POST"])
-def guardar_personas():
-    pd = PersonaDaoControl()
-    data = request.form
-    
-    if not "apellido" in data.keys():
-        abort(400)
-        
-    #TODO ...Validar
-    pd._persona._apellidos = data["apellido"]
-    pd._persona._nombres = data["nombre"]
-    pd._persona._direccion = data["dir"]
-    pd._persona._dni = data["dni"]
-    pd._persona._telefono = data["fono"]
-    pd._persona._tipoIdentificacion = "CEDULA"
-    pd.save
-    return redirect("/personas", code=302)
-
-@router.route('/personas/modificar', methods=["POST"])
-def modificar_personas():
-    pd = PersonaDaoControl()
-    data = request.form
-    pos = data["id"]
-    nene = pd._list().get(int(data["id"]))
-    if not "apellido" in data.keys():
-        abort(400)
-        
-    #TODO ...Validar
-    pd._persona = nene
-    pd._persona._apellidos = data["apellido"]
-    pd._persona._nombres = data["nombre"]
-    pd._persona._direccion = data["dir"]
-    pd._persona._dni = data["dni"]
-    pd._persona._telefono = data["fono"]
-    pd._persona._tipoIdentificacion = "CEDULA"
-    pd.merge(int(pos) -1)
-    return redirect("/personas", code=302)
+@router.route('/listar')
+def listar():
+    return render_template('listar.html', expresiones=expresiones_registradas)

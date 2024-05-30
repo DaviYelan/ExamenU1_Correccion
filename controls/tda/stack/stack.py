@@ -1,19 +1,18 @@
 from controls.tda.stack.stackOperation import StackOperation
 
-class Stack():
-    def __init__(self, tope):
-        self.__stack = StackOperation(tope)
+class Pila():
+    def __init__(self):
+        self.elementos = []
 
-    def push(self, data):
-        self.__stack.push(data)
+    def push(self, elemento):
+        self.elementos.append(elemento)
 
     def pop(self):
-        return self.__stack.pop
-    
-    def print(self):
-        self.__stack.print
-    
-    def verify(self):
-        return self.__stack.verifyTop
-    
+        return self.elementos.pop()
+
+    def peek(self):
+        return self.elementos[-1]
+
+    def is_empty(self):
+        return len(self.elementos) == 0
     

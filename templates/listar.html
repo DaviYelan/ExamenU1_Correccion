@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+{% block content %}
+<h2 class="text-white">Listado de Expresiones</h2>
+<div class="booking-form-body">
+    <a href="/" class="btn btn-danger">VOLVER</a>
+    <table id="tabla" class="table text-white">
+        <thead>
+            <th>Nro</th>
+            <th>Expresión</th>
+            <th>Resultado</th>
+        </thead>
+        <tbody>
+            {% for expresion in expresiones %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ expresion.expresion }}</td>
+                <td>{{ expresion.resultado }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
